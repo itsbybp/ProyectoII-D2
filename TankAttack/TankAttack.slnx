@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="TankAttack.vcxproj" />
+  <Project Path="TankAttack.vcxproj" Id="37017bc3-d1d7-4cd3-99c1-13f716bce3d7" />
 </Solution>
