@@ -16,9 +16,11 @@ int main() {
         BeginDrawing();
         ClearBackground(DARKGRAY);
         map.draw();
+        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            map.isWhite = !map.isWhite;
+		}
         EndDrawing();
     }
-
     CloseWindow();
     return 0;
 }

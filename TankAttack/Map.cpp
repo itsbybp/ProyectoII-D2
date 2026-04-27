@@ -112,11 +112,15 @@ bool Map::isFullyConnected() const {
     return connected;
 }
 
-void Map::draw() const {
+void Map::draw() {
     for (int r = 0; r < ROWS; r++) {
         for (int c = 0; c < COLS; c++) {
-            Color color = grid[r][c].isObstacle ? DARKGRAY : BEIGE;
-            DrawRectangle(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1, color);
+			Color color = grid[r][c].isObstacle ? DARKGRAY : (isWhite ? BLACK : WHITE);
+			DrawRectangle(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1, color);
         }
     }
+}
+
+bool Map::change() {
+    return false;
 }

@@ -6,12 +6,15 @@ public:
     static const int ROWS = 15;
     static const int COLS = 19;
     static const int CELL_SIZE = 50;
+    bool isWhite = true;
 
     Map();
     ~Map();
     void generate();
     bool isObstacle(int row, int col) const;
-    void draw() const;
+    void draw();
+	void redraw();
+    bool change();
 
 private:
     Cell grid[ROWS][COLS];
