@@ -1,16 +1,21 @@
 #include "raylib.h"
+#include "Map.h"
 
 int main() {
-    const int SCREEN_WIDTH = 800;
-    const int SCREEN_HEIGHT = 600;
+    const int SCREEN_WIDTH = Map::COLS * Map::CELL_SIZE;
+    const int SCREEN_HEIGHT = Map::ROWS * Map::CELL_SIZE;
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Tank Attack!");
     SetTargetFPS(60);
+    MaximizeWindow();
+
+    Map map;
+    map.generate();
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground(BEIGE);
-        DrawText("Tank Attack!", 320, 280, 20, DARKGRAY);
+        ClearBackground(DARKGRAY);
+        map.draw();
         EndDrawing();
     }
 
