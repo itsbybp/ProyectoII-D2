@@ -38,14 +38,37 @@ void Map::generate() {
         for (int r = 0; r < ROWS; r++)
             for (int c = 0; c < COLS; c++)
                 grid[r][c].isObstacle = false;
-
         for (int r = 0; r < ROWS; r++)
             for (int c = 0; c < COLS; c++)
                 if (rand() % 100 < 30)
                     grid[r][c].isObstacle = true;
-
         buildAdjacency();
     } while (!isFullyConnected());
+
+    int i = 0;
+    while (i < 4) {
+        int r = rand() % ROWS;
+        int c = rand() % COLS;
+        if (!grid[r][c].isObstacle && !grid[r][c].hasTank) {
+            grid[r][c].hasTank = true;
+            switch (i) {
+            case 0:
+                tanks[i] = Tank(r, c, 0, 100, BLUE);
+                break;
+            case 1:
+                tanks[i] = Tank(r, c, 0, 100, RED);
+                break;
+            case 2:
+                tanks[i] = Tank(r, c, 1, 100, YELLOW);
+                break;
+            case 3:
+                tanks[i] = Tank(r, c, 1, 100, SKYBLUE);
+                break;
+            }
+            i++;
+        }
+    }
+    buildAdjacency();
 }
 
 void Map::buildAdjacency() {
@@ -115,8 +138,18 @@ bool Map::isFullyConnected() const {
 void Map::draw() {
     for (int r = 0; r < ROWS; r++) {
         for (int c = 0; c < COLS; c++) {
-			Color color = grid[r][c].isObstacle ? DARKGRAY : (isWhite ? BLACK : WHITE);
-			DrawRectangle(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1, color);
+            if (grid[r][c].hasTank) {
+                for (const Tank& tank : tanks) {
+                    if (tank.row == r && tank.col == c) {
+                        DrawRectangle(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1, tank.color);
+                        break;
+                    }
+                }
+			}
+            else {
+                Color color = grid[r][c].isObstacle ? DARKGRAY : (isWhite ? BLACK : WHITE);
+                DrawRectangle(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1, color);
+            }
         }
     }
 }

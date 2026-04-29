@@ -1,5 +1,6 @@
 #pragma once
 #include "Cell.h"
+#include "Tank.h"
 
 class Map {
 public:
@@ -13,10 +14,10 @@ public:
     void generate();
     bool isObstacle(int row, int col) const;
     void draw();
-	void redraw();
     bool change();
 
 private:
+	Tank tanks[4];
     Cell grid[ROWS][COLS];
     bool** adjacency;
 
