@@ -16,9 +16,21 @@ int main() {
         BeginDrawing();
         ClearBackground(DARKGRAY);
         map.draw();
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            map.isWhite = !map.isWhite;
-		}
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            Vector2 mouse = GetMousePosition();
+            int col = static_cast<int>(mouse.x) / Map::CELL_SIZE;
+            int row = static_cast<int>(mouse.y) / Map::CELL_SIZE;
+            if (row >= 0 && row < Map::ROWS && col >= 0 && col < Map::COLS) {
+                if (map.grid[row][col].hasTank0 && map.player == 0) {
+                    map.isWhite = false;
+                    map.player = 1;
+                }
+                else if (map.grid[row][col].hasTank1 && map.player == 1) {
+                    map.isWhite = true;
+                    map.player = 0;
+				}
+            }
+        }
         EndDrawing();
     }
     CloseWindow();

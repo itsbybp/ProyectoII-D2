@@ -8,6 +8,8 @@ public:
     static const int COLS = 19;
     static const int CELL_SIZE = 50;
     bool isWhite = true;
+    int player = 0;
+    Cell grid[ROWS][COLS];
 
     Map();
     ~Map();
@@ -18,7 +20,6 @@ public:
 
 private:
 	Tank tanks[4];
-    Cell grid[ROWS][COLS];
     bool** adjacency;
 
     int toIndex(int row, int col) const;

@@ -49,19 +49,22 @@ void Map::generate() {
     while (i < 4) {
         int r = rand() % ROWS;
         int c = rand() % COLS;
-        if (!grid[r][c].isObstacle && !grid[r][c].hasTank) {
-            grid[r][c].hasTank = true;
+        if (!grid[r][c].isObstacle && !grid[r][c].hasTank0 && !grid[r][c].hasTank1) {
             switch (i) {
             case 0:
+                grid[r][c].hasTank0 = true;
                 tanks[i] = Tank(r, c, 0, 100, BLUE);
                 break;
             case 1:
+                grid[r][c].hasTank0 = true;
                 tanks[i] = Tank(r, c, 0, 100, RED);
                 break;
             case 2:
+                grid[r][c].hasTank1 = true;
                 tanks[i] = Tank(r, c, 1, 100, YELLOW);
                 break;
             case 3:
+                grid[r][c].hasTank1 = true;
                 tanks[i] = Tank(r, c, 1, 100, SKYBLUE);
                 break;
             }
@@ -138,7 +141,7 @@ bool Map::isFullyConnected() const {
 void Map::draw() {
     for (int r = 0; r < ROWS; r++) {
         for (int c = 0; c < COLS; c++) {
-            if (grid[r][c].hasTank) {
+            if (grid[r][c].hasTank0 || grid[r][c].hasTank1) {
                 for (const Tank& tank : tanks) {
                     if (tank.row == r && tank.col == c) {
                         DrawRectangle(c * CELL_SIZE, r * CELL_SIZE, CELL_SIZE - 1, CELL_SIZE - 1, tank.color);
