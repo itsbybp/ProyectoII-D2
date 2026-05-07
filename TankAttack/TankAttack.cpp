@@ -34,8 +34,6 @@ int main() {
                     int tank;
                     if (map.tanks[0].row == row && map.tanks[0].col == col) tank = 0;
                     else if (map.tanks[1].row == row && map.tanks[1].col == col) tank = 1;
-                    else if (map.tanks[2].row == row && map.tanks[2].col == col) tank = 2;
-                    else if (map.tanks[3].row == row && map.tanks[3].col == col) tank = 3;
                     bool a = true;
                     while (a) {
                         EndDrawing();
@@ -49,7 +47,6 @@ int main() {
 
                             if (!map.grid[targetRow][targetCol].isObstacle && !map.grid[targetRow][targetCol].hasTank0 && !map.grid[targetRow][targetCol].hasTank1) {
                                 if (tank == 0) {
-                                    srand((unsigned int)time(nullptr));
                                     int randNum = rand() % 2;
                                     if (randNum == 0) {
                                         map.tanks[0].moveBFS(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
@@ -59,33 +56,12 @@ int main() {
                                     }
                                 }
                                 else if (tank == 1) {
-                                    srand((unsigned int)time(nullptr));
                                     int randNum = rand() % 10;
                                     if (randNum < 7) {
                                         map.tanks[1].moveDijkstra(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
                                     }
                                     else {
 										map.tanks[1].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
-                                    }
-                                }
-                                else if (tank == 2) {
-                                    srand((unsigned int)time(nullptr));
-                                    int randNum = rand() % 2;
-                                    if (randNum == 0) {
-                                        map.tanks[2].moveBFS(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
-                                    }
-                                    else {
-                                        map.tanks[2].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
-                                    }
-                                }
-                                else if (tank == 3) {
-                                    srand((unsigned int)time(nullptr));
-                                    int randNum = rand() % 10;
-                                    if (randNum < 7) {
-                                        map.tanks[3].moveDijkstra(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
-                                    }
-                                    else {
-                                        map.tanks[3].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
                                     }
                                 }
 							}
@@ -110,6 +86,9 @@ int main() {
                 }
 
                 else if (map.grid[row][col].hasTank1 && map.player == 1) {
+                    int tank;
+                    if (map.tanks[2].row == row && map.tanks[2].col == col) tank = 2;
+                    else if (map.tanks[3].row == row && map.tanks[3].col == col) tank = 3;
                     bool a = true;
                     while (a) {
                         EndDrawing();
@@ -120,14 +99,36 @@ int main() {
                             Vector2 target = GetMousePosition();
                             int targetCol = static_cast<int>(target.x) / Map::CELL_SIZE;
                             int targetRow = static_cast<int>(target.y) / Map::CELL_SIZE;
+
+                            if (!map.grid[targetRow][targetCol].isObstacle && !map.grid[targetRow][targetCol].hasTank0 && !map.grid[targetRow][targetCol].hasTank1) {
+                                if (tank == 2) {
+                                    int randNum = rand() % 2;
+                                    if (randNum == 0) {
+                                        map.tanks[2].moveBFS(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                    else {
+                                        map.tanks[2].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                }
+                                else if (tank == 3) {
+                                    int randNum = rand() % 10;
+                                    if (randNum < 7) {
+                                        map.tanks[3].moveDijkstra(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                    else {
+                                        map.tanks[3].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                }
+                            }
+
                             if (targetRow >= 0 && targetRow < Map::ROWS && targetCol >= 0 && targetCol < Map::COLS) {
-                                for (int i = 2; i < 4; i++) {
-                                    if (map.tanks[i].row == row && map.tanks[i].col == col && !map.grid[targetRow][targetCol].hasTank0 && !map.grid[targetRow][targetCol].hasTank1) {
+                                for (int i = 0; i < 2; i++) {
+                                    if (map.tanks[i].row == row && map.tanks[i].col == col && !map.grid[targetRow][targetCol].isObstacle && !map.grid[targetRow][targetCol].hasTank0 && !map.grid[targetRow][targetCol].hasTank1) {
                                         map.tanks[i].row = targetRow;
                                         map.tanks[i].col = targetCol;
-                                        map.grid[row][col].hasTank1 = false;
-										map.grid[row][col].isObstacle = false;
-                                        map.grid[targetRow][targetCol].hasTank1 = true;
+                                        map.grid[row][col].hasTank0 = false;
+                                        map.grid[row][col].isObstacle = false;
+                                        map.grid[targetRow][targetCol].hasTank0 = true;
                                         a = false;
                                         break;
                                     }

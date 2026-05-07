@@ -8,18 +8,17 @@
 #include <ctime>
 
 void Tank::updatePosition(int user, Cell& current, Cell& target) {
-	row = target.row;
-	col = target.col;
-
     if (user == 0) {
-        current.isObstacle = false;
         current.hasTank0 = false;
         target.hasTank0 = true;
-    } else {
-        current.isObstacle = false;
+    }
+    else {
         current.hasTank1 = false;
         target.hasTank1 = true;
-	}
+    }
+
+    row = target.row;
+    col = target.col;
 }
 
 void Tank::moveBFS(int user, Map& map, Cell& start, Cell& target) {
@@ -75,8 +74,8 @@ void Tank::moveDijkstra(int user, Map& map, Cell& start, Cell& target) {
 void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
     const int radius = 5;
 
-    int currRow = start.row;
-    int currCol = start.col;
+    int currRow = row;
+    int currCol = col;
 
     int dRow = (target.row > currRow) ? 1 : (target.row < currRow) ? -1 : 0;
     int dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0;
@@ -84,8 +83,12 @@ void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
     bool blocked = false;
 
     while (currRow != target.row || currCol != target.col) {
-        int nextRow = currRow + dRow;
-        int nextCol = currCol + dCol;
+        int nextRow = currRow;
+        int nextCol = currCol;
+
+        if (currRow != target.row) nextRow += dRow;
+        else if (currCol != target.col) nextCol += dCol;
+
         if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS || map.grid[nextRow][nextCol].isObstacle || map.grid[nextRow][nextCol].hasTank0 || map.grid[nextRow][nextCol].hasTank1) {
             blocked = true;
             break;
@@ -97,89 +100,29 @@ void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
 
 	if (!blocked) return;
 
-	srand((unsigned int)time(nullptr));
+    int randRow = currRow + (rand() % (2 * radius + 1)) - radius;
+    int randCol = currCol + (rand() % (2 * radius + 1)) - radius;
 
-    bool valid = true;
+    if (randRow >= 0 && randRow < Map::ROWS && randCol >= 0 && randCol < Map::COLS && !map.grid[randRow][randCol].isObstacle && !map.grid[randRow][randCol].hasTank0 && !map.grid[randRow][randCol].hasTank1) {
 
-    while (valid) {
-        int position = (rand() % 3);
-		bool validThrough[radius + 1] = { false };
+        updatePosition(user, map.grid[currRow][currCol], map.grid[randRow][randCol]);
 
-        switch (position) {
-        case 0:
-            for (int i = radius; i > 0; i--) {
-                if (!map.grid[currRow][currCol + i].isObstacle && !map.grid[currRow][currCol + i].hasTank0 && !map.grid[currRow][currCol + i].hasTank1) {
-					validThrough[i] = true;
-				}
-            }
-            for (int i = 1; i <= radius; i++) {
-                if (validThrough[0] && !validThrough[i]) {
-                    updatePosition(user, map.grid[currRow][currCol], map.grid[currRow][currCol + i - 1]);
-                    currCol = currCol + i - 1;
-                    valid = false;
-                    break;
-                }
-			}
-            break;
-        case 1:
-            for (int i = radius; i > 0; i--) {
-                if (!map.grid[currRow + i][currCol].isObstacle && !map.grid[currRow + i][currCol].hasTank0 && !map.grid[currRow + i][currCol].hasTank1) {
-                    validThrough[i] = true;
-                }
-            }
-            for (int i = 1; i <= radius; i++) {
-                if (validThrough[0] && !validThrough[i]) {
-                    updatePosition(user, map.grid[currRow][currCol], map.grid[currRow + i - 1][currCol]);
-					currRow = currRow + i - 1;
-                    valid = false;
-                    break;
-                }
-            }
-            break;
-        case 2:
-            for (int i = radius; i > 0; i--) {
-                if (!map.grid[currRow][currCol - i].isObstacle && !map.grid[currRow][currCol - i].hasTank0 && !map.grid[currRow][currCol - i].hasTank1) {
-                    validThrough[i] = true;
-                }
-            }
-            for (int i = 1; i <= radius; i++) {
-                if (validThrough[0] && !validThrough[i]) {
-                    updatePosition(user, map.grid[currRow][currCol], map.grid[currRow][currCol - i + 1]);
-                    currCol = currCol - i + 1;
-                    valid = false;
-                    break;
-                }
-            }
-            break;
-        case 3:
-            for (int i = radius; i > 0; i--) {
-                if (!map.grid[currRow - i][currCol].isObstacle && !map.grid[currRow - i][currCol].hasTank0 && !map.grid[currRow - i][currCol].hasTank1) {
-                    validThrough[i] = true;
-                }
-            }
-            for (int i = 1; i <= radius; i++) {
-                if (validThrough[0] && !validThrough[i]) {
-                    updatePosition(user, map.grid[currRow][currCol], map.grid[currRow - i + 1][currCol]);
-                    currRow = currRow - i + 1;
-                    valid = false;
-                    break;
-                }
-            }
-            break;
-        }
-	}
-
+        currRow = randRow;
+        currCol = randCol;
+    }
     dRow = (target.row > currRow) ? 1 : (target.row < currRow) ? -1 : 0;
-    dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0;
+    dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0; 
 
-    while (currRow != target.row || currCol != target.col) {
-        int nextRow = currRow + dRow;
-        int nextCol = currCol + dCol;
-        if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS || map.grid[nextRow][nextCol].isObstacle || map.grid[nextRow][nextCol].hasTank0 || map.grid[nextRow][nextCol].hasTank1) {
-            break;
-        }
-        updatePosition(user, map.grid[currRow][currCol], map.grid[nextRow][nextCol]);
-        currRow = nextRow;
-        currCol = nextCol;
+    while (currRow != target.row || currCol != target.col) { 
+        int nextRow = currRow;
+        int nextCol = currCol;
+
+        if (currRow != target.row) nextRow += dRow;
+        else if (currCol != target.col) nextCol += dCol;
+
+        if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS || map.grid[nextRow][nextCol].isObstacle || map.grid[nextRow][nextCol].hasTank0 || map.grid[nextRow][nextCol].hasTank1) break;
+        updatePosition(user, map.grid[currRow][currCol], map.grid[nextRow][nextCol]);        
+        currRow = nextRow;       
+        currCol = nextCol; 
     }
 }
