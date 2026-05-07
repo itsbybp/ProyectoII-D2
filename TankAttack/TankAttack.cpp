@@ -33,7 +33,9 @@ int main() {
                 if (map.grid[row][col].hasTank0 && map.player == 0) {
                     int tank;
                     if (map.tanks[0].row == row && map.tanks[0].col == col) tank = 0;
-                    else tank = 1;
+                    else if (map.tanks[1].row == row && map.tanks[1].col == col) tank = 1;
+                    else if (map.tanks[2].row == row && map.tanks[2].col == col) tank = 2;
+                    else if (map.tanks[3].row == row && map.tanks[3].col == col) tank = 3;
                     bool a = true;
                     while (a) {
                         EndDrawing();
@@ -53,16 +55,38 @@ int main() {
                                         map.tanks[0].moveBFS(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
                                     }
                                     else {
-                                        int zzz = 0;
+										map.tanks[0].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
                                     }
                                 }
-                                else {
+                                else if (tank == 1) {
                                     srand((unsigned int)time(nullptr));
                                     int randNum = rand() % 10;
                                     if (randNum < 7) {
                                         map.tanks[1].moveDijkstra(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
                                     }
-                                    else int zzz = 0;
+                                    else {
+										map.tanks[1].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                }
+                                else if (tank == 2) {
+                                    srand((unsigned int)time(nullptr));
+                                    int randNum = rand() % 2;
+                                    if (randNum == 0) {
+                                        map.tanks[2].moveBFS(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                    else {
+                                        map.tanks[2].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                }
+                                else if (tank == 3) {
+                                    srand((unsigned int)time(nullptr));
+                                    int randNum = rand() % 10;
+                                    if (randNum < 7) {
+                                        map.tanks[3].moveDijkstra(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
+                                    else {
+                                        map.tanks[3].moveRandom(0, map, map.grid[row][col], map.grid[targetRow][targetCol]);
+                                    }
                                 }
 							}
                             

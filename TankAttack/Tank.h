@@ -19,5 +19,6 @@ struct Tank
 	void updatePosition(int user, Cell& current, Cell& target);
 	void moveBFS(int user, Map& map, Cell& start, Cell& target);
 	void moveDijkstra(int user, Map& map, Cell& start, Cell& target);
+	void moveRandom(int user, Map& map, Cell& start, Cell& target);
 };
 

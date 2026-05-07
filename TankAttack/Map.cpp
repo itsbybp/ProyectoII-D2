@@ -61,11 +61,11 @@ void Map::generate() {
                 break;
             case 2:
                 grid[r][c].hasTank1 = true;
-                tanks[2] = Tank(r, c, 1, 100, YELLOW);
+                tanks[2] = Tank(r, c, 1, 100, SKYBLUE);
                 break;
             case 3:
                 grid[r][c].hasTank1 = true;
-                tanks[3] = Tank(r, c, 1, 100, SKYBLUE);
+                tanks[3] = Tank(r, c, 1, 100, YELLOW);
                 break;
             }
             i++;
