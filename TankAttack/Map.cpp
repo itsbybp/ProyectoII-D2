@@ -155,10 +155,39 @@ void Map::draw() {
             }
         }
     }
-    if (selectedRow >= 0 && selectedCol >= 0) {
-		Rectangle rect = { (float)(selectedCol * CELL_SIZE), (float)(selectedRow * CELL_SIZE), (float)(CELL_SIZE - 1), (float)(CELL_SIZE - 1) };
+    if (highlightCol >= 0 && highlightRow >= 0) {
+		Rectangle rect = { (float)(highlightCol * CELL_SIZE), (float)(highlightRow * CELL_SIZE), (float)(CELL_SIZE - 1), (float)(CELL_SIZE - 1) };
         DrawRectangleLinesEx(rect, 3, GREEN);
 	}
+}
+
+void Map::updateMovement() {
+    static float timer = 0;
+    timer += GetFrameTime();
+    if (!moving || timer < 0.1f) return;
+    timer = 0;
+
+    if (path.size() > 1) {
+        Cell* current = path[0];
+        Cell* next = path[1];
+
+        if (selectedTank < 2) {
+            (*current).hasTank0 = false;
+            (*next).hasTank0 = true;
+        }
+        else {
+            (*current).hasTank1 = false;
+            (*next).hasTank1 = true;
+        }
+        tanks[selectedTank].row = (*next).row;
+        tanks[selectedTank].col = (*next).col;
+        path.erase(path.begin());
+    }
+    else {
+        moving = false;
+        path.clear();
+        selectedTank = -1;
+    }
 }
 
 bool Map::change() {
