@@ -53,19 +53,19 @@ void Map::generate() {
             switch (i) {
             case 0:
                 grid[r][c].hasTank0 = true;
-                tanks[i] = Tank(r, c, 0, 100, BLUE);
+                tanks[0] = Tank(r, c, 0, 100, BLUE);
                 break;
             case 1:
                 grid[r][c].hasTank0 = true;
-                tanks[i] = Tank(r, c, 0, 100, RED);
+                tanks[1] = Tank(r, c, 0, 100, RED);
                 break;
             case 2:
                 grid[r][c].hasTank1 = true;
-                tanks[i] = Tank(r, c, 1, 100, YELLOW);
+                tanks[2] = Tank(r, c, 1, 100, SKYBLUE);
                 break;
             case 3:
                 grid[r][c].hasTank1 = true;
-                tanks[i] = Tank(r, c, 1, 100, SKYBLUE);
+                tanks[3] = Tank(r, c, 1, 100, YELLOW);
                 break;
             }
             i++;
@@ -155,6 +155,10 @@ void Map::draw() {
             }
         }
     }
+    if (selectedRow >= 0 && selectedCol >= 0) {
+		Rectangle rect = { (float)(selectedCol * CELL_SIZE), (float)(selectedRow * CELL_SIZE), (float)(CELL_SIZE - 1), (float)(CELL_SIZE - 1) };
+        DrawRectangleLinesEx(rect, 3, GREEN);
+	}
 }
 
 bool Map::change() {
