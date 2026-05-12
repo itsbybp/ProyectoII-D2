@@ -1,44 +1,54 @@
 #pragma once
 #include "Cell.h"
 #include "Tank.h"
-#include <vector>
+#include <cstdio>
 
 class Map {
 public:
     static const int ROWS = 15;
     static const int COLS = 19;
     static const int CELL_SIZE = 50;
+    static const int BAR_HEIGHT = 60;
+    void buildAdjacency();
+    void buildAdjacencyForTank(int tankIdx);
 
     int selectedRow = -1;
     int selectedCol = -1;
-
     int highlightRow = -1;
-	int highlightCol = -1;
-
-	int isSelected = false;
+    int highlightCol = -1;
+    bool isSelected = false;
     int selectedTank = -1;
-
-    bool isWhite = true;
-    bool moving = false;
     int player = 0;
+    bool moving = false;
+
+    // 0=ninguno, 1=mover, 2=disparar, 3=powerup
+    int actionMode = 0;
+
+    // Ruta de movimiento (array manual)
+    Cell* path[ROWS * COLS];
+    int pathSize = 0;
+
+    // Trazo de bala
+    Cell* bulletPath[ROWS * COLS * 4];
+    int bulletPathSize = 0;
+    bool showBulletPath = false;
+
     bool** adjacency;
-
-    std::vector<Cell*> path;
-
     Cell grid[ROWS][COLS];
     Tank tanks[4];
 
     Map();
     ~Map();
     void generate();
-	void updateMovement();
+    void updateMovement();
     bool isObstacle(int row, int col) const;
     void draw();
     bool change();
-    void quickUpdate(int user, Cell*& currentCell, Cell*& nextCell);
+    void shootBullet(int fromRow, int fromCol, int dirRow, int dirCol, int tankIdx);
 
 private:
     int toIndex(int row, int col) const;
-    void buildAdjacency();
     bool isFullyConnected() const;
+    void drawHUD();
+    void drawActionButtons();
 };

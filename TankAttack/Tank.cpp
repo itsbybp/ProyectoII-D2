@@ -3,221 +3,181 @@
 #include "Cell.h"
 #include "raylib.h"
 #include <cstdlib>
-#include <queue>
-#include <vector>
-#include <ctime>
-#include <chrono>
-#include <thread>
 
 void Tank::updatePosition(int user, Cell& current, Cell& target) {
     if (user == 0) {
-        current.isObstacle = false;
         current.hasTank0 = false;
         target.hasTank0 = true;
     }
     else {
-        current.isObstacle = false;
         current.hasTank1 = false;
         target.hasTank1 = true;
     }
-
     row = target.row;
     col = target.col;
 }
 
 void Tank::moveBFS(int user, Map& map, Cell& start, Cell& target) {
+    map.pathSize = 0;
+
+    int total = Map::ROWS * Map::COLS;
     int stIdx = start.row * Map::COLS + start.col;
     int tgIdx = target.row * Map::COLS + target.col;
 
-    std::vector<int> parent(Map::ROWS * Map::COLS, -1);
-    std::vector<char> visited(Map::ROWS * Map::COLS, 0);
+    int* parent = new int[total];
+    bool* visited = new bool[total];
+    for (int i = 0; i < total; i++) { parent[i] = -1; visited[i] = false; }
 
-    std::queue<int> q;
-
+    int* q = new int[total];
+    int front = 0, back = 0;
+    q[back++] = stIdx;
     visited[stIdx] = true;
-    q.push(stIdx);
 
-    bool found = false;
-
-    while (!q.empty()) {
-        int curr = q.front();
-        q.pop();
-
-        if (curr == tgIdx) {
-            found = true;
-            break;
-        }
-
-        for (int j = 0; j < Map::ROWS * Map::COLS; j++) {
+    while (front < back) {
+        int curr = q[front++];
+        if (curr == tgIdx) break;
+        for (int j = 0; j < total; j++) {
             if (map.adjacency[curr][j] && !visited[j]) {
                 visited[j] = true;
                 parent[j] = curr;
-                q.push(j);
+                q[back++] = j;
             }
         }
     }
 
-    std::vector<int> path;
+    int* tmp = new int[total];
+    int tmpSize = 0;
     int current = tgIdx;
-
-    while (current != -1) {
-        path.push_back(current);
-        current = parent[current];
+    while (current != -1) { tmp[tmpSize++] = current; current = parent[current]; }
+    for (int i = tmpSize - 1; i >= 0; i--) {
+        int idx = tmp[i];
+        map.path[map.pathSize++] = &map.grid[idx / Map::COLS][idx % Map::COLS];
     }
 
-    std::reverse(path.begin(), path.end());
+    map.moving = true;
+    map.showBulletPath = false;
 
-    for (int i = 0; i < path.size(); i++) {
-        int idx = path[i];
-        int row = idx / Map::COLS;
-        int col = idx % Map::COLS;
-        map.path.push_back(&map.grid[row][col]);
-    }
-	map.moving = true;
+    delete[] parent; delete[] visited; delete[] q; delete[] tmp;
 }
 
-
 void Tank::moveDijkstra(int user, Map& map, Cell& start, Cell& target) {
-    map.path.clear();
+    map.pathSize = 0;
 
     int total = Map::ROWS * Map::COLS;
     int startIdx = start.row * Map::COLS + start.col;
     int targetIdx = target.row * Map::COLS + target.col;
 
-    std::vector<int> dist(total, 300);
-    std::vector<int> parent(total, -1);
-    std::vector<bool> visited(total, false);
-
+    int* dist = new int[total];
+    int* parent = new int[total];
+    bool* visited = new bool[total];
+    for (int i = 0; i < total; i++) { dist[i] = 99999; parent[i] = -1; visited[i] = false; }
     dist[startIdx] = 0;
-    for (int i = 0; i < total; i++) 
-    {
-        int curr = -1;
-        int minDist = 300;
 
-        for (int j = 0; j < total; j++) 
-        {
-            if (!visited[j] && dist[j] < minDist) 
-            {
-                minDist = dist[j];
-                curr = j;
-            }
-        }
-        if (curr == -1)
-            break;
+    for (int i = 0; i < total; i++) {
+        int curr = -1, minDist = 99999;
+        for (int j = 0; j < total; j++)
+            if (!visited[j] && dist[j] < minDist) { minDist = dist[j]; curr = j; }
+        if (curr == -1) break;
         visited[curr] = true;
-        for (int j = 0; j < total; j++) 
-        {
-            if (map.adjacency[curr][j] && !visited[j]) 
-            {
-                int newDist = dist[curr] + 1;
-                if (newDist < dist[j]) 
-                {
-                    dist[j] = newDist;
-                    parent[j] = curr;
-                }
+        for (int j = 0; j < total; j++) {
+            if (map.adjacency[curr][j] && !visited[j]) {
+                int nd = dist[curr] + 1;
+                if (nd < dist[j]) { dist[j] = nd; parent[j] = curr; }
             }
         }
     }
 
-    std::vector<int> path;
+    int* tmp = new int[total];
+    int tmpSize = 0;
     int current = targetIdx;
-    while (current != -1)
-    {
-        path.push_back(current);
-        current = parent[current];
+    while (current != -1) { tmp[tmpSize++] = current; current = parent[current]; }
+    for (int i = tmpSize - 1; i >= 0; i--) {
+        int idx = tmp[i];
+        map.path[map.pathSize++] = &map.grid[idx / Map::COLS][idx % Map::COLS];
     }
-    std::reverse(path.begin(), path.end());
 
-    for (int i = 0; i < path.size(); i++) 
-    {
-        int idx = path[i];
-        int row = idx / Map::COLS;
-        int col = idx % Map::COLS;
-        map.path.push_back(&map.grid[row][col]);
-    }
     map.moving = true;
+    map.showBulletPath = false;
+
+    delete[] dist; delete[] parent; delete[] visited; delete[] tmp;
 }
 
 void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
-    map.path.clear();
-    map.path.push_back(&map.grid[row][col]);
+    map.pathSize = 0;
+    map.path[map.pathSize++] = &map.grid[row][col];
 
     const int radius = 5;
-    int currRow = row;
-    int currCol = col;
-
+    int currRow = row, currCol = col;
     int dRow = (target.row > currRow) ? 1 : (target.row < currRow) ? -1 : 0;
     int dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0;
 
+    // Fase 1: linea recta al objetivo
     bool blocked = false;
-    while (currRow != target.row || currCol != target.col) 
-    {
-        int nextRow = currRow;
-        int nextCol = currCol;
-
+    while (currRow != target.row || currCol != target.col) {
+        int nextRow = currRow, nextCol = currCol;
         if (currRow != target.row) nextRow += dRow;
-        else if (currCol != target.col) nextCol += dCol;
+        else nextCol += dCol;
 
-        if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS || map.grid[nextRow][nextCol].isObstacle || map.grid[nextRow][nextCol].hasTank0 || map.grid[nextRow][nextCol].hasTank1)
-        {
-            blocked = true;
-            break;
+        if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS ||
+            map.grid[nextRow][nextCol].isObstacle ||
+            map.grid[nextRow][nextCol].hasTank0 ||
+            map.grid[nextRow][nextCol].hasTank1) {
+            blocked = true; break;
         }
-
-        map.path.push_back(&map.grid[nextRow][nextCol]);
-        currRow = nextRow;
-        currCol = nextCol;
+        map.path[map.pathSize++] = &map.grid[nextRow][nextCol];
+        currRow = nextRow; currCol = nextCol;
     }
 
-    if (!blocked) 
-    {
-        map.moving = true;
-        return;
-    }
+    if (!blocked) { map.moving = true; map.showBulletPath = false; return; }
 
-    int randRow = currRow;
-    int randCol = currCol;
+    // Fase 2: posicion aleatoria en radio
+    int randRow = currRow, randCol = currCol;
+    int attempts = 0;
     bool valid = false;
-
-    while (!valid) 
-    {
+    while (!valid && attempts < 100) {
         randRow = currRow + (rand() % (2 * radius + 1)) - radius;
         randCol = currCol + (rand() % (2 * radius + 1)) - radius;
-
-        if (randRow >= 0 && randRow < Map::ROWS && randCol >= 0 && randCol < Map::COLS && !map.grid[randRow][randCol].isObstacle && !map.grid[randRow][randCol].hasTank0 && !map.grid[randRow][randCol].hasTank1) valid = true;
+        if (randRow >= 0 && randRow < Map::ROWS && randCol >= 0 && randCol < Map::COLS &&
+            !map.grid[randRow][randCol].isObstacle &&
+            !map.grid[randRow][randCol].hasTank0 &&
+            !map.grid[randRow][randCol].hasTank1)
+            valid = true;
+        attempts++;
     }
 
-    while (currRow != randRow || currCol != randCol) 
-    {
-        int nextRow = currRow;
-        int nextCol = currCol;
-
+    // Moverse a posicion aleatoria
+    while (currRow != randRow || currCol != randCol) {
+        int nextRow = currRow, nextCol = currCol;
         if (currRow < randRow) nextRow++;
-        else if (currRow > randRow) nextRow--; 
+        else if (currRow > randRow) nextRow--;
         else if (currCol < randCol) nextCol++;
-        else if (currCol > randCol) nextCol--;
+        else nextCol--;
 
-        if (map.grid[nextRow][nextCol].isObstacle || map.grid[nextRow][nextCol].hasTank0 || map.grid[nextRow][nextCol].hasTank1) break;
-        map.path.push_back(&map.grid[nextRow][nextCol]);
-        currRow = nextRow;
-        currCol = nextCol;
+        if (map.grid[nextRow][nextCol].isObstacle ||
+            map.grid[nextRow][nextCol].hasTank0 ||
+            map.grid[nextRow][nextCol].hasTank1) break;
+
+        map.path[map.pathSize++] = &map.grid[nextRow][nextCol];
+        currRow = nextRow; currCol = nextCol;
     }
 
+    // Fase 3: segundo intento en linea recta al objetivo
     dRow = (target.row > currRow) ? 1 : (target.row < currRow) ? -1 : 0;
     dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0;
-
-    while (currRow != target.row || currCol != target.col) 
-    {
-        int nextRow = currRow;
-        int nextCol = currCol;
-
+    while (currRow != target.row || currCol != target.col) {
+        int nextRow = currRow, nextCol = currCol;
         if (currRow != target.row) nextRow += dRow;
-        else if (currCol != target.col) nextCol += dCol;
+        else nextCol += dCol;
 
-        if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS || map.grid[nextRow][nextCol].isObstacle || map.grid[nextRow][nextCol].hasTank0 || map.grid[nextRow][nextCol].hasTank1) break;
-        map.path.push_back(&map.grid[nextRow][nextCol]);
-        currRow = nextRow;
-        currCol = nextCol;
+        if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS ||
+            map.grid[nextRow][nextCol].isObstacle ||
+            map.grid[nextRow][nextCol].hasTank0 ||
+            map.grid[nextRow][nextCol].hasTank1) break;
+
+        map.path[map.pathSize++] = &map.grid[nextRow][nextCol];
+        currRow = nextRow; currCol = nextCol;
     }
+
     map.moving = true;
+    map.showBulletPath = false;
 }
