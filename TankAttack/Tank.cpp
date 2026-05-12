@@ -19,7 +19,6 @@ void Tank::updatePosition(int user, Cell& current, Cell& target) {
 
 void Tank::moveBFS(int user, Map& map, Cell& start, Cell& target) {
     map.pathSize = 0;
-
     int total = Map::ROWS * Map::COLS;
     int stIdx = start.row * Map::COLS + start.col;
     int tgIdx = target.row * Map::COLS + target.col;
@@ -56,13 +55,11 @@ void Tank::moveBFS(int user, Map& map, Cell& start, Cell& target) {
 
     map.moving = true;
     map.showBulletPath = false;
-
     delete[] parent; delete[] visited; delete[] q; delete[] tmp;
 }
 
 void Tank::moveDijkstra(int user, Map& map, Cell& start, Cell& target) {
     map.pathSize = 0;
-
     int total = Map::ROWS * Map::COLS;
     int startIdx = start.row * Map::COLS + start.col;
     int targetIdx = target.row * Map::COLS + target.col;
@@ -98,7 +95,6 @@ void Tank::moveDijkstra(int user, Map& map, Cell& start, Cell& target) {
 
     map.moving = true;
     map.showBulletPath = false;
-
     delete[] dist; delete[] parent; delete[] visited; delete[] tmp;
 }
 
@@ -111,7 +107,6 @@ void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
     int dRow = (target.row > currRow) ? 1 : (target.row < currRow) ? -1 : 0;
     int dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0;
 
-    // Fase 1: linea recta al objetivo
     bool blocked = false;
     while (currRow != target.row || currCol != target.col) {
         int nextRow = currRow, nextCol = currCol;
@@ -130,7 +125,6 @@ void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
 
     if (!blocked) { map.moving = true; map.showBulletPath = false; return; }
 
-    // Fase 2: posicion aleatoria en radio
     int randRow = currRow, randCol = currCol;
     int attempts = 0;
     bool valid = false;
@@ -145,35 +139,29 @@ void Tank::moveRandom(int user, Map& map, Cell& start, Cell& target) {
         attempts++;
     }
 
-    // Moverse a posicion aleatoria
     while (currRow != randRow || currCol != randCol) {
         int nextRow = currRow, nextCol = currCol;
         if (currRow < randRow) nextRow++;
         else if (currRow > randRow) nextRow--;
         else if (currCol < randCol) nextCol++;
         else nextCol--;
-
         if (map.grid[nextRow][nextCol].isObstacle ||
             map.grid[nextRow][nextCol].hasTank0 ||
             map.grid[nextRow][nextCol].hasTank1) break;
-
         map.path[map.pathSize++] = &map.grid[nextRow][nextCol];
         currRow = nextRow; currCol = nextCol;
     }
 
-    // Fase 3: segundo intento en linea recta al objetivo
     dRow = (target.row > currRow) ? 1 : (target.row < currRow) ? -1 : 0;
     dCol = (target.col > currCol) ? 1 : (target.col < currCol) ? -1 : 0;
     while (currRow != target.row || currCol != target.col) {
         int nextRow = currRow, nextCol = currCol;
         if (currRow != target.row) nextRow += dRow;
         else nextCol += dCol;
-
         if (nextRow < 0 || nextRow >= Map::ROWS || nextCol < 0 || nextCol >= Map::COLS ||
             map.grid[nextRow][nextCol].isObstacle ||
             map.grid[nextRow][nextCol].hasTank0 ||
             map.grid[nextRow][nextCol].hasTank1) break;
-
         map.path[map.pathSize++] = &map.grid[nextRow][nextCol];
         currRow = nextRow; currCol = nextCol;
     }

@@ -4,8 +4,10 @@
 #include <ctime>
 
 int main() {
-    const int SCREEN_WIDTH = Map::COLS * Map::CELL_SIZE;
-    const int SCREEN_HEIGHT = Map::ROWS * Map::CELL_SIZE + Map::BAR_HEIGHT;
+    const int MAP_W = Map::COLS * Map::CELL_SIZE;
+    const int MAP_H = Map::ROWS * Map::CELL_SIZE;
+    const int SCREEN_WIDTH = Map::LEFT_PANEL + MAP_W + Map::RIGHT_PANEL;
+    const int SCREEN_HEIGHT = MAP_H + Map::BAR_HEIGHT;
 
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Tank Attack!");
     SetTargetFPS(60);
@@ -18,40 +20,45 @@ int main() {
     while (!WindowShouldClose()) {
         map.updateMovement();
 
-        // Clicks en botones de la barra (fuera del area del mapa)
+        // Shift: usar power-up
+        if (IsKeyPressed(KEY_LEFT_SHIFT) || IsKeyPressed(KEY_RIGHT_SHIFT)) {
+            if (map.isSelected && map.selectedTank != -1 && !map.moving)
+                map.applyPowerUp(map.selectedTank);
+        }
+
+        // Clicks en panel de botones derecho
         if (map.isSelected && map.selectedTank != -1 && !map.moving) {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 Vector2 mouse = GetMousePosition();
-                int barY = Map::ROWS * Map::CELL_SIZE;
-                int btnW = 120, btnH = 36;
-                int startX = Map::COLS * Map::CELL_SIZE - 3 * (btnW + 10) - 10;
-                int btnY = barY + 12;
+                int panelX = Map::LEFT_PANEL + MAP_W;
+                int btnW = Map::RIGHT_PANEL - 20, btnH = 40;
+                int btnX = panelX + 10;
 
                 for (int i = 0; i < 3; i++) {
-                    int x = startX + i * (btnW + 10);
-                    if (mouse.x >= x && mouse.x <= x + btnW &&
-                        mouse.y >= btnY && mouse.y <= btnY + btnH) {
+                    int btnY = 40 + i * (btnH + 10);
+                    if (mouse.x >= btnX && mouse.x <= btnX + btnW &&
+                        mouse.y >= btnY && mouse.y <= btnY + btnH)
                         map.actionMode = i + 1;
-                    }
                 }
             }
         }
 
         BeginDrawing();
-        ClearBackground(DARKGRAY);
+        ClearBackground(Color{ 40,40,40,255 });
         map.draw();
 
         if (!map.moving) {
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                 Vector2 mouse = GetMousePosition();
-                int col = (int)mouse.x / Map::CELL_SIZE;
-                int row = (int)mouse.y / Map::CELL_SIZE;
+                // Compensar offset del mapa
+                int mx = (int)mouse.x - Map::LEFT_PANEL;
+                int my = (int)mouse.y;
+                int col = mx / Map::CELL_SIZE;
+                int row = my / Map::CELL_SIZE;
 
-                // Solo procesar clicks dentro del mapa
-                if (row >= 0 && row < Map::ROWS && col >= 0 && col < Map::COLS) {
+                if (mx >= 0 && row >= 0 && row < Map::ROWS && col >= 0 && col < Map::COLS) {
 
                     if (!map.isSelected) {
-                        // Seleccionar tanque propio
                         if (map.grid[row][col].hasTank0 && map.player == 0) {
                             map.highlightRow = row; map.highlightCol = col;
                             map.selectedTank = (map.tanks[0].row == row && map.tanks[0].col == col) ? 0 : 1;
@@ -75,30 +82,39 @@ int main() {
                             int tr = map.tanks[map.selectedTank].row;
                             int tc = map.tanks[map.selectedTank].col;
                             map.highlightRow = -1; map.highlightCol = -1;
-
                             map.buildAdjacencyForTank(map.selectedTank);
 
+                            Tank& t = map.tanks[map.selectedTank];
                             int u = (map.selectedTank < 2) ? 0 : 1;
-                            if (map.selectedTank == 0 || map.selectedTank == 2) {
-                                if (rand() % 2 == 0)
-                                    map.tanks[map.selectedTank].moveBFS(u, map, map.grid[tr][tc], map.grid[row][col]);
-                                else
-                                    map.tanks[map.selectedTank].moveRandom(u, map, map.grid[tr][tc], map.grid[row][col]);
-                            }
-                            else {
-                                if (rand() % 10 < 8)
-                                    map.tanks[map.selectedTank].moveDijkstra(u, map, map.grid[tr][tc], map.grid[row][col]);
-                                else
-                                    map.tanks[map.selectedTank].moveRandom(u, map, map.grid[tr][tc], map.grid[row][col]);
+
+                            int probBFS = (map.selectedTank == 0 || map.selectedTank == 2) ? 50 : 0;
+                            int probDij = (map.selectedTank == 1 || map.selectedTank == 3) ? 80 : 0;
+
+                            if (t.precisionMovActiva) {
+                                probBFS = (map.selectedTank == 0 || map.selectedTank == 2) ? 90 : 0;
+                                probDij = (map.selectedTank == 1 || map.selectedTank == 3) ? 90 : 0;
+                                t.precisionMovActiva = false;
+                                map.powerUpEnUso[map.selectedTank] = -1;
                             }
 
-                            map.player = (map.player == 0) ? 1 : 0;
-                            map.isSelected = false;
-                            map.actionMode = 0;
+                            if (map.selectedTank == 0 || map.selectedTank == 2) {
+                                if (rand() % 100 < probBFS)
+                                    t.moveBFS(u, map, map.grid[tr][tc], map.grid[row][col]);
+                                else
+                                    t.moveRandom(u, map, map.grid[tr][tc], map.grid[row][col]);
+                            }
+                            else {
+                                if (rand() % 100 < probDij)
+                                    t.moveDijkstra(u, map, map.grid[tr][tc], map.grid[row][col]);
+                                else
+                                    t.moveRandom(u, map, map.grid[tr][tc], map.grid[row][col]);
+                            }
+
+                            map.endTurn();
+
                         }
                         else if ((map.player == 0 && map.grid[row][col].hasTank0) ||
                             (map.player == 1 && map.grid[row][col].hasTank1)) {
-                            // Cambiar seleccion al otro tanque propio
                             map.highlightRow = row; map.highlightCol = col;
                             if (map.player == 0)
                                 map.selectedTank = (map.tanks[0].row == row && map.tanks[0].col == col) ? 0 : 1;
@@ -107,14 +123,12 @@ int main() {
                             map.actionMode = 0;
                         }
                         else {
-                            // Deseleccionar
                             map.isSelected = false;
                             map.highlightRow = -1; map.highlightCol = -1;
                             map.actionMode = 0;
                         }
                     }
                     else if (map.actionMode == 0) {
-                        // Sin modo: reseleccionar tanque propio
                         if ((map.player == 0 && map.grid[row][col].hasTank0) ||
                             (map.player == 1 && map.grid[row][col].hasTank1)) {
                             map.highlightRow = row; map.highlightCol = col;
@@ -135,17 +149,33 @@ int main() {
             if (map.isSelected && map.actionMode == 2 &&
                 IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
                 Vector2 mouse = GetMousePosition();
-                int col = (int)mouse.x / Map::CELL_SIZE;
+                int mx = (int)mouse.x - Map::LEFT_PANEL;
+                int col = mx / Map::CELL_SIZE;
                 int row = (int)mouse.y / Map::CELL_SIZE;
 
-                if (row >= 0 && row < Map::ROWS && col >= 0 && col < Map::COLS) {
+                if (mx >= 0 && row >= 0 && row < Map::ROWS && col >= 0 && col < Map::COLS) {
                     int tr = map.tanks[map.selectedTank].row;
                     int tc = map.tanks[map.selectedTank].col;
-                    map.shootBullet(tr, tc, row, col, map.selectedTank);
-                    map.player = (map.player == 0) ? 1 : 0;
-                    map.isSelected = false;
-                    map.highlightRow = -1; map.highlightCol = -1;
-                    map.actionMode = 0;
+                    Tank& t = map.tanks[map.selectedTank];
+
+                    // Aplicar flags de power-up al disparo
+                    if (t.poderAtqActivo) {
+                        map.usarPoderAtaque = true;
+                        t.poderAtqActivo = false;
+                        map.powerUpEnUso[map.selectedTank] = -1;
+                    }
+
+                    if (t.precisionAtqActiva) {
+                        map.usarPrecisionAtaque = true;
+                        t.precisionAtqActiva = false;
+                        map.powerUpEnUso[map.selectedTank] = -1;
+                        map.shootBulletAStar(tr, tc, row, col, map.selectedTank);
+                    }
+                    else {
+                        map.shootBullet(tr, tc, row, col, map.selectedTank);
+                    }
+
+                    map.endTurn();
                 }
             }
         }

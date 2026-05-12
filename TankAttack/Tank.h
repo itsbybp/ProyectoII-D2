@@ -1,6 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "Cell.h"
+#include "PowerUp.h"
 #include <cstdlib>
 
 class Map;
@@ -11,6 +12,13 @@ struct Tank {
     int user;
     int health;
     Color color;
+    PowerUpQueue powerUps;
+
+    // Estados de power-up activo
+    bool precisionMovActiva = false;
+    bool precisionAtqActiva = false;
+    bool poderAtqActivo = false;
+    int dobleTurnoRestante = 0;
 
     Tank() : row(0), col(0), user(0), health(100), color(BLACK) {}
     Tank(int r, int c, int u, int h, Color col) : row(r), col(c), user(u), health(h), color(col) {}
