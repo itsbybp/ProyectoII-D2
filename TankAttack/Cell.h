@@ -1,10 +1,9 @@
 #pragma once
 
-struct Cell 
-{
+struct Cell {
     bool isObstacle;
     bool hasTank0;
-	bool hasTank1;
+    bool hasTank1;
     int row;
     int col;
 

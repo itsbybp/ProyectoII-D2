@@ -137,6 +137,7 @@
   <ItemGroup>
     <ClInclude Include="Cell.h" />
     <ClInclude Include="Map.h" />
+    <ClInclude Include="PowerUp.h" />
     <ClInclude Include="Tank.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
