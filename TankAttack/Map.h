@@ -42,11 +42,11 @@ public:
 
     // Power-up "en uso" por tanque (-1 = ninguno)
     // Usamos PowerUpType como int, -1 = sin poder en uso
-    int powerUpEnUso[4] = { -1, -1, -1, -1 };
+    int usingPowerUp[4] = { -1, -1, -1, -1 };
 
     // Flag para shootBullet
-    bool usarPoderAtaque = false;
-    bool usarPrecisionAtaque = false;
+    bool usePowerAttack = false;
+    bool usePrecisionAttack = false;
 
     Map();
     ~Map();

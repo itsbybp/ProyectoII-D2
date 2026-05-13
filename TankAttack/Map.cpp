@@ -19,9 +19,9 @@ Map::Map() {
     pathSize = 0;
     bulletPathSize = 0;
     showBulletPath = false;
-    for (int i = 0; i < 4; i++) powerUpEnUso[i] = -1;
-    usarPoderAtaque = false;
-    usarPrecisionAtaque = false;
+    for (int i = 0; i < 4; i++) usingPowerUp[i] = -1;
+    usePowerAttack = false;
+    usePrecisionAttack = false;
 }
 
 Map::~Map() {
@@ -185,10 +185,10 @@ void Map::shootBullet(int fromRow, int fromCol, int targetRow, int targetCol, in
         if (!primerPaso) {
             int t = esTanque(cr, cc);
             if (t != -1) {
-                int dmg = usarPoderAtaque ? 100 : ((t == 0 || t == 2) ? 25 : 50);
+                int dmg = usePowerAttack ? 100 : ((t == 0 || t == 2) ? 25 : 50);
                 tanks[t].health -= dmg;
                 if (tanks[t].health < 0) tanks[t].health = 0;
-                usarPoderAtaque = false;
+                usePowerAttack = false;
                 return;
             }
         }
@@ -210,13 +210,13 @@ void Map::shootBullet(int fromRow, int fromCol, int targetRow, int targetCol, in
             if (t == -1 && bloqR) t = esTanque(nextR, cc);
             if (t == -1 && bloqC) t = esTanque(cr, nextC);
             if (t != -1) {
-                int dmg = usarPoderAtaque ? 100 : ((t == 0 || t == 2) ? 25 : 50);
+                int dmg = usePowerAttack ? 100 : ((t == 0 || t == 2) ? 25 : 50);
                 tanks[t].health -= dmg;
                 if (tanks[t].health < 0) tanks[t].health = 0;
-                usarPoderAtaque = false;
+                usePowerAttack = false;
                 return;
             }
-            if (rebotado) { usarPoderAtaque = false; return; }
+            if (rebotado) { usePowerAttack = false; return; }
             rebotado = true;
             if (bloqR && bloqC) { stepR = -stepR; stepC = -stepC; }
             else if (bloqR) { stepR = -stepR; }
@@ -309,15 +309,15 @@ void Map::shootBulletAStar(int fromRow, int fromCol, int targetRow, int targetCo
     for (int t = 0; t < 4; t++) {
         if (tanks[t].health <= 0) continue;
         if (tanks[t].row == targetRow && tanks[t].col == targetCol) {
-            int dmg = usarPoderAtaque ? 100 : ((t == 0 || t == 2) ? 25 : 50);
+            int dmg = usePowerAttack ? 100 : ((t == 0 || t == 2) ? 25 : 50);
             tanks[t].health -= dmg;
             if (tanks[t].health < 0) tanks[t].health = 0;
             break;
         }
     }
 
-    usarPoderAtaque = false;
-    usarPrecisionAtaque = false;
+    usePowerAttack = false;
+    usePrecisionAttack = false;
     delete[] gCost; delete[] hCost; delete[] fCost;
     delete[] parent; delete[] open; delete[] closed; delete[] tmp;
 }
@@ -346,10 +346,7 @@ void Map::tryGivePowerUp() {
     tanks[tankIdx].powerUps.enqueue(chosen);
 
     const char* names[] = { "Azul","Rojo","Celeste","Amarillo" };
-    snprintf(powerUpMsgText, sizeof(powerUpMsgText),
-        "Power-up para %s: %s",
-        names[tankIdx],
-        tanks[tankIdx].powerUps.typeName(chosen));
+    snprintf(powerUpMsgText, sizeof(powerUpMsgText), "Power-up para %s: %s", names[tankIdx], tanks[tankIdx].powerUps.typeName(chosen));
     showPowerUpMsg = true;
     powerUpMsgTimer = 3.0f;
 }
@@ -365,7 +362,7 @@ void Map::applyPowerUp(int tankIdx) {
     if (tankIdx >= 2 && player != 1) return;
 
     // No aplicar si ya hay uno en uso para este tanque
-    if (powerUpEnUso[tankIdx] != -1) {
+    if (usingPowerUp[tankIdx] != -1) {
         snprintf(powerUpMsgText, sizeof(powerUpMsgText),
             "Ya hay un power-up en uso para este tanque!");
         showPowerUpMsg = true;
@@ -374,24 +371,24 @@ void Map::applyPowerUp(int tankIdx) {
     }
 
     PowerUpType pu = t.powerUps.dequeue();
-    powerUpEnUso[tankIdx] = (int)pu;
+    usingPowerUp[tankIdx] = (int)pu;
 
     switch (pu) {
     case PowerUpType::DOBLE_TURNO:
         extraTurns += 2;
-        powerUpEnUso[tankIdx] = -1; // se aplica inmediatamente
+        usingPowerUp[tankIdx] = -1; // se aplica inmediatamente
         snprintf(powerUpMsgText, sizeof(powerUpMsgText), "Doble turno activado!");
         break;
     case PowerUpType::PRECISION_MOVIMIENTO:
-        t.precisionMovActiva = true;
+        t.precisionMoveAct = true;
         snprintf(powerUpMsgText, sizeof(powerUpMsgText), "Precision de movimiento lista!");
         break;
     case PowerUpType::PRECISION_ATAQUE:
-        t.precisionAtqActiva = true;
+        t.precisionAtckAct = true;
         snprintf(powerUpMsgText, sizeof(powerUpMsgText), "Precision de ataque lista!");
         break;
     case PowerUpType::PODER_ATAQUE:
-        t.poderAtqActivo = true;
+        t.attackPwrAct = true;
         snprintf(powerUpMsgText, sizeof(powerUpMsgText), "Poder de ataque listo!");
         break;
     }
@@ -522,8 +519,8 @@ void Map::drawPowerUpPanel() {
     // En uso
     DrawText("En uso:", 10, y, 13, LIGHTGRAY);
     y += 17;
-    if (powerUpEnUso[selectedTank] != -1) {
-        PowerUpType pu = (PowerUpType)powerUpEnUso[selectedTank];
+    if (usingPowerUp[selectedTank] != -1) {
+        PowerUpType pu = (PowerUpType)usingPowerUp[selectedTank];
         DrawText(t.powerUps.typeName(pu), 10, y, 13, ORANGE);
     }
     else {

@@ -15,10 +15,10 @@ struct Tank {
     PowerUpQueue powerUps;
 
     // Estados de power-up activo
-    bool precisionMovActiva = false;
-    bool precisionAtqActiva = false;
-    bool poderAtqActivo = false;
-    int dobleTurnoRestante = 0;
+    bool precisionMoveAct = false;
+    bool precisionAtckAct = false;
+    bool attackPwrAct = false;
+    int doubleTurn = 0;
 
     Tank() : row(0), col(0), user(0), health(100), color(BLACK) {}
     Tank(int r, int c, int u, int h, Color col) : row(r), col(c), user(u), health(h), color(col) {}

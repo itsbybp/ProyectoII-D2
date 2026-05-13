@@ -90,11 +90,11 @@ int main() {
                             int probBFS = (map.selectedTank == 0 || map.selectedTank == 2) ? 50 : 0;
                             int probDij = (map.selectedTank == 1 || map.selectedTank == 3) ? 80 : 0;
 
-                            if (t.precisionMovActiva) {
+                            if (t.precisionMoveAct) {
                                 probBFS = (map.selectedTank == 0 || map.selectedTank == 2) ? 90 : 0;
                                 probDij = (map.selectedTank == 1 || map.selectedTank == 3) ? 90 : 0;
-                                t.precisionMovActiva = false;
-                                map.powerUpEnUso[map.selectedTank] = -1;
+                                t.precisionMoveAct = false;
+                                map.usingPowerUp[map.selectedTank] = -1;
                             }
 
                             if (map.selectedTank == 0 || map.selectedTank == 2) {
@@ -159,16 +159,16 @@ int main() {
                     Tank& t = map.tanks[map.selectedTank];
 
                     // Aplicar flags de power-up al disparo
-                    if (t.poderAtqActivo) {
-                        map.usarPoderAtaque = true;
-                        t.poderAtqActivo = false;
-                        map.powerUpEnUso[map.selectedTank] = -1;
+                    if (t.attackPwrAct) {
+                        map.usePowerAttack = true;
+                        t.attackPwrAct = false;
+                        map.usingPowerUp[map.selectedTank] = -1;
                     }
 
-                    if (t.precisionAtqActiva) {
-                        map.usarPrecisionAtaque = true;
-                        t.precisionAtqActiva = false;
-                        map.powerUpEnUso[map.selectedTank] = -1;
+                    if (t.precisionAtckAct) {
+                        map.usePrecisionAttack = true;
+                        t.precisionAtckAct = false;
+                        map.usingPowerUp[map.selectedTank] = -1;
                         map.shootBulletAStar(tr, tc, row, col, map.selectedTank);
                     }
                     else {
