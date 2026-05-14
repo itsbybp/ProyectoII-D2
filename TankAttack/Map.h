@@ -12,6 +12,11 @@ public:
     static const int LEFT_PANEL = 200;
     static const int RIGHT_PANEL = 160;
 
+	float timeLimit = 10.0f;
+	float timeRemaining = 10.0f;
+
+	bool gameOver = false;
+
     void buildAdjacency();
     void buildAdjacencyForTank(int tankIdx);
 
@@ -22,6 +27,9 @@ public:
     int player = 0;
     bool moving = false;
     int actionMode = 0; // 0=ninguno, 1=mover, 2=disparar, 3=powerup
+
+	int tanksPlayer1 = 2;
+	int tanksPlayer2 = 2;
 
     Cell* path[ROWS * COLS];
     int pathSize = 0;

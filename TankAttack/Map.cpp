@@ -187,7 +187,19 @@ void Map::shootBullet(int fromRow, int fromCol, int targetRow, int targetCol, in
             if (t != -1) {
                 int dmg = usePowerAttack ? 100 : ((t == 0 || t == 2) ? 25 : 50);
                 tanks[t].health -= dmg;
-                if (tanks[t].health < 0) tanks[t].health = 0;
+                if (tanks[t].health <= 0) {
+                    int tankRow = tanks[t].row;
+                    int tankCol = tanks[t].col;
+                    if (t < 2) {
+                        grid[tankRow][tankCol].hasTank0 = false;
+                        tanksPlayer1--;
+                    }
+                    else {
+                        grid[tankRow][tankCol].hasTank1 = false;
+                        tanksPlayer2--;
+                    }
+                    tanks[t].health = 0;
+                }
                 usePowerAttack = false;
                 return;
             }
@@ -212,7 +224,19 @@ void Map::shootBullet(int fromRow, int fromCol, int targetRow, int targetCol, in
             if (t != -1) {
                 int dmg = usePowerAttack ? 100 : ((t == 0 || t == 2) ? 25 : 50);
                 tanks[t].health -= dmg;
-                if (tanks[t].health < 0) tanks[t].health = 0;
+                if (tanks[t].health <= 0) {
+                    int tankRow = tanks[t].row;
+                    int tankCol = tanks[t].col;
+                    if (t < 2) {
+                        grid[tankRow][tankCol].hasTank0 = false;
+                        tanksPlayer1--;
+                    }
+                    else {
+                        grid[tankRow][tankCol].hasTank1 = false;
+                        tanksPlayer2--;
+                    }
+                    tanks[t].health = 0;
+                }
                 usePowerAttack = false;
                 return;
             }
@@ -311,7 +335,19 @@ void Map::shootBulletAStar(int fromRow, int fromCol, int targetRow, int targetCo
         if (tanks[t].row == targetRow && tanks[t].col == targetCol) {
             int dmg = usePowerAttack ? 100 : ((t == 0 || t == 2) ? 25 : 50);
             tanks[t].health -= dmg;
-            if (tanks[t].health < 0) tanks[t].health = 0;
+            if (tanks[t].health <= 0) {
+                int tankRow = tanks[t].row;
+                int tankCol = tanks[t].col;
+                if (t < 2) {
+                    grid[tankRow][tankCol].hasTank0 = false;
+                    tanksPlayer1--;
+                }
+                else {
+                    grid[tankRow][tankCol].hasTank1 = false;
+                    tanksPlayer2--;
+                }
+                tanks[t].health = 0;
+            }
             break;
         }
     }
@@ -444,6 +480,8 @@ void Map::drawHUD() {
     int mapH = ROWS * CELL_SIZE;
     int barY = mapH;
     int totalW = LEFT_PANEL + mapW + RIGHT_PANEL;
+	int mins = (int)timeRemaining / 60;
+	int secs = (int)timeRemaining % 60;
 
     DrawRectangle(0, barY, totalW, BAR_HEIGHT, BLACK);
 
@@ -466,6 +504,10 @@ void Map::drawHUD() {
             snprintf(buf, sizeof(buf), "%s: %d%%", names[t], tanks[t].health);
         DrawText(buf, LEFT_PANEL + t * colW + 5, barY + 32, 14, tanks[t].color);
     }
+    char timeBuf[16];
+    snprintf(timeBuf, sizeof(timeBuf), "%02d:%02d", mins, secs);
+    int timerW = MeasureText(timeBuf, 22);
+    DrawText(timeBuf, LEFT_PANEL + mapW + RIGHT_PANEL - timerW - 10, barY + (BAR_HEIGHT - 22) / 2, 22, RED);
 }
 
 void Map::drawActionButtons() {
